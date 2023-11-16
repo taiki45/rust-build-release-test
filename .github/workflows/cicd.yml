@@ -42,8 +42,8 @@ jobs:
         id: crate_metadata
         shell: bash
         run: |
-          human_version = "$(cargo metadata --no-deps --format-version 1 | jq -r '"v" + .packages[0].version')"
-          if [ "${{ github.ref_name }}" != "${human_version} ]; then
+          human_version="$(cargo metadata --no-deps --format-version 1 | jq -r '"v" + .packages[0].version')"
+          if [ "${{ github.ref_name }}" != "${human_version}" ]; then
             echo "Tag does not match version in Cargo.toml: ${{ github.ref_name }} != ${human_version}"
             exit 1
           fi
