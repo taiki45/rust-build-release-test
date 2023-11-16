@@ -67,7 +67,6 @@ jobs:
         job:
         # To sort the matrix.
         - { target: aarch64-apple-darwin, os: macos-latest }
-        - { target: aarch64-unknown-linux-gnu, os: ubuntu-latest }
         - { target: x86_64-apple-darwin, os: macos-latest }
         - { target: x86_64-pc-windows-gnu, os: ubuntu-latest }
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-20.04 }
@@ -76,9 +75,10 @@ jobs:
     - uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # Latest as of 2023-11-16
       with:
         toolchain: stable
-    - uses: taiki-e/install-action@e2daa7c7c8bc02b4afae53143c6a07d8b916a3f7 # v2.21.12
-      with:
-        tool: cross
+        targets: ${{ matrix.job.target }}
+    # - uses: taiki-e/install-action@e2daa7c7c8bc02b4afae53143c6a07d8b916a3f7 # v2.21.12
+    #   with:
+    #     tool: cross
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - name: Build release binary
       run: cargo build --release --locked --verbose --all-features --target=${{ matrix.job.target }}
