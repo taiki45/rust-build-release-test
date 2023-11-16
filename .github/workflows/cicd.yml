@@ -3,10 +3,11 @@ name: CI/CD
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ $default-branch ]
   push:
-    branches: [ $default-branch ]
-    tags: [ '*' ]
+    branches:
+      - main
+    tags:
+      - '*'
 
 env:
   RUST_BACKTRACE: 1
