@@ -75,5 +75,7 @@ jobs:
     - uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # Latest as of 2023-11-16
       with:
         toolchain: stable
+    - name: Add target
+      run: rustup target add ${{ matrix.job.target }}
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - run: cargo build --release --locked --verbose --all-features --target=${{ matrix.job.target }}
