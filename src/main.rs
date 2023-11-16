@@ -1,6 +1,3 @@
 fn main() {
-    loop {
-        println!("Hello, world!");
-        break;
-    }
+    println!("Hello, world!");
 }
