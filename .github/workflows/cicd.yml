@@ -60,6 +60,8 @@ jobs:
     needs:
       - ci
       - crate-metadata
+    permissions:
+      contents: write
     name: Build release
     strategy:
       fail-fast: false
