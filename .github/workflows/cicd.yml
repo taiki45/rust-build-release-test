@@ -88,6 +88,9 @@ jobs:
     - name: Archive release binary
       run: |
         tar --create --gzip --verbose --file=${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz --directory=target/${{ matrix.job.target }}/release ${{ needs.crate-metadata.outputs.name }}
+    - name: Install coreutils for macOS runner
+      if: matrix.job.os == 'macos-latest'
+      run: brew install coreutils
     - name: Calculate checksum
       run: |
         sha256sum ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz > ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz.sha256
