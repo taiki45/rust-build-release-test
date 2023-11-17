@@ -1,8 +1,15 @@
 name: CI/CD
 
 on:
-  workflow_dispatch:
+  # By default, a workflow only runs when a pull_request event's activity type is opened, synchronize, or reopened.
+  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+  # So we add default event types and ready_for_review type here.
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   push:
     branches:
       - main
@@ -10,11 +17,12 @@ on:
       - '*'
 
 env:
-  RUST_BACKTRACE: 1
+  RUST_BACKTRACE: full
   CARGO_TERM_COLOR: always
 
 jobs:
   ci:
+    if: github.event.pull_request.draft == false
     name: Run CI tasks
     runs-on: ubuntu-20.04
     steps:
@@ -65,6 +73,7 @@ jobs:
     name: Build release
     env:
       BUILD_CMD: cargo
+    runs-on: ${{ matrix.job.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +84,6 @@ jobs:
         - { target: x86_64-apple-darwin, os: macos-latest }
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
         - { target: x86_64-unknown-linux-musl, os: ubuntu-latest }
-    runs-on: ${{ matrix.job.os }}
     steps:
     - uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # Latest as of 2023-11-16
       with:
