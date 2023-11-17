@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Extract crate information
-        id: crate_metadata
+        id: crate-metadata
         shell: bash
         run: |
           human_version="$(cargo metadata --no-deps --format-version 1 | jq -r '"v" + .packages[0].version')"
@@ -51,9 +51,9 @@ jobs:
           cargo metadata --no-deps --format-version 1 | jq -r '"version=" + .packages[0].version' | tee -a $GITHUB_OUTPUT
           cargo metadata --no-deps --format-version 1 | jq -r '"msrv=" + .packages[0].rust_version' | tee -a $GITHUB_OUTPUT
     outputs:
-      name: ${{ steps.crate_metadata.outputs.name }}
-      version: ${{ steps.crate_metadata.outputs.version }}
-      msrv: ${{ steps.crate_metadata.outputs.msrv }}
+      name: ${{ steps.crate-metadata.outputs.name }}
+      version: ${{ steps.crate-metadata.outputs.version }}
+      msrv: ${{ steps.crate-metadata.outputs.msrv }}
 
   build-release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -83,3 +83,15 @@ jobs:
       run: cargo build --release --locked --verbose --all-features --target=${{ matrix.job.target }}
       env:
         PKG_CONFIG_ALLOW_CROSS: 1
+    - name: Archive release binary
+      run: |
+        tar --create --gzip --verbose --file=${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz --directory=target/${{ matrix.job.target }}/release ${{ needs.crate-metadata.outputs.name }}
+    - name: Calculate checksum
+      run: |
+        sha256sum ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz > ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz.sha256
+    - name: Upload release binary
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
+      with:
+        files: |
+          ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz
+          ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz.sha256
