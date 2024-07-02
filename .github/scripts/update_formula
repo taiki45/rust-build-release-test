@@ -6,6 +6,7 @@ require 'digest'
 
 GITHUB_REF = ENV.fetch('GITHUB_REF')
 TARGET = ENV.fetch('TARGET')
+OWNER = ENV.fetch('OWNER')
 
 tag = GITHUB_REF.sub('refs/tags/v', '')
 formula_path = "HomebrewFormula/#{TARGET}.rb"
@@ -16,7 +17,7 @@ updated_content = content.gsub(/version '[^']*'/, "version '#{tag}'")
 
 updated_content.gsub!(%r{url 'https://github.com/[^']+/releases/download/[^/]+/([^']+)'}) do |url|
   file_name = Regexp.last_match(1)
-  new_url = "https://github.com/Finatext/#{TARGET}/releases/download/v#{tag}/#{file_name}"
+  new_url = "https://github.com/#{OWNER}/#{TARGET}/releases/download/v#{tag}/#{file_name}"
   puts "Updating #{url} to #{new_url}"
   %(url '#{new_url}')
 end
