@@ -147,7 +147,7 @@ jobs:
         git checkout -b "${branch_name}"
 
         git diff
-        git add HomebrewFormula/orgu.rb
+        git add "HomebrewFormula/#{TARGET}.rb"
         git commit -m "Update Homebrew formula"
         git push
         git push --set-upstream origin "${branch_name}"
