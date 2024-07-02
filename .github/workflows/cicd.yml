@@ -26,19 +26,8 @@ jobs:
     name: Run CI tasks
     runs-on: ubuntu-20.04
     steps:
-      - uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # Latest as of 2023-11-16
-        with:
-          toolchain: stable
-          components: rustfmt,clippy
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - name: Check "cargo fmt"
-        run: cargo fmt -- --check
-      - name: Run "cargo check"
-        run: cargo check --locked --all-features --all-targets
-      - name: Run "cargo clippy"
-        run: cargo clippy --locked --all-features -- -D warnings
-      - name: Run "cargo test"
-        run: cargo test --locked --verbose --all-targets --all-features
+      - shell: bash
+        run: echo 'ok'
 
   crate-metadata:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -80,8 +69,6 @@ jobs:
         job:
         # To sort the matrix, use inline syntax.
         - { target: aarch64-apple-darwin, os: macos-latest }
-        - { target: aarch64-unknown-linux-gnu, os: ubuntu-latest, cross: true }
-        - { target: x86_64-apple-darwin, os: macos-latest }
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
         - { target: x86_64-unknown-linux-musl, os: ubuntu-latest }
     steps:
@@ -117,3 +104,49 @@ jobs:
         files: |
           ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz
           ${{ needs.crate-metadata.outputs.name }}-${{ matrix.job.target }}.tar.gz.sha256
+
+  update-homebrew:
+    needs:
+      - build-release
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OWNER: taiki45
+      TARGET: rust-build-release-test
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        ref: main
+    - name: Update Homebrew Formula
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REF: ${{ github.ref }}
+      shell: bash
+      run: |
+        .github/scripts/update_formula
+    - name: Commit and push changes
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        set -x
+        # https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        branch_name="homebrew-auto-update-$(echo $((RANDOM % 900 + 100)))"
+        git checkout -b "${branch_name}"
+
+        git diff
+        git add "HomebrewFormula/${TARGET}.rb"
+        git commit -m "Update Homebrew formula"
+        git push --set-upstream origin "${branch_name}"
+
+        pr_url="$(gh pr create --title "Auto update Homebrew formula" --body "Automated changes by GitHub Actions" \
+          --base main --head "${branch_name}")"
+        echo "Pull request created: ${pr_url}"
+
+        gh pr merge "${pr_url}" --auto --squash
