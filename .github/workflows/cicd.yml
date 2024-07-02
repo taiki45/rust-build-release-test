@@ -127,6 +127,8 @@ jobs:
       run: |
         .github/scripts/update_formula
     - name: Commit and push changes
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
       run: |
         set -x
@@ -134,7 +136,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-        branch_name="homebrew-auto-update"
+        branch_name="homebrew-auto-update-$(echo $((RANDOM % 900 + 100)))"
         git checkout -b "${branch_name}"
 
         git diff
