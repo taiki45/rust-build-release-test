@@ -12,21 +12,21 @@ formula_path = "HomebrewFormula/#{TARGET}.rb"
 
 content = File.read(formula_path)
 
-updated_content = content.gsub(/version "[^"]*"/, "version \"#{tag}\"")
+updated_content = content.gsub(/version '[^']*'/, "version '#{tag}'")
 
-updated_content.gsub!(%r{url "https://github.com/[^"]+/releases/download/[^/]+/([^"]+)"}) do |url|
+updated_content.gsub!(%r{url 'https://github.com/[^']+/releases/download/[^/]+/([^']+)'}) do |url|
   file_name = Regexp.last_match(1)
   new_url = "https://github.com/Finatext/#{TARGET}/releases/download/v#{tag}/#{file_name}"
   puts "Updating #{url} to #{new_url}"
-  %(url "#{new_url}")
+  %(url '#{new_url}')
 end
 
-urls = updated_content.scan(/url "([^"]+)"/).flatten
+urls = updated_content.scan(/url '([^']+)'/).flatten
 urls.each do |url|
   puts "Updating sha256 for #{url}"
   file = URI.open(url)
   sha256 = Digest::SHA256.hexdigest(file.read)
-  updated_content.gsub!(/(url "#{Regexp.escape(url)}"\n\s*sha256 ")[^"]+"/) do |_match|
+  updated_content.gsub!(/(url "#{Regexp.escape(url)}"\n\s*sha256 ')[^']+'/) do |_match|
     "#{Regexp.last_match(1)}#{sha256}\""
   end
 end
