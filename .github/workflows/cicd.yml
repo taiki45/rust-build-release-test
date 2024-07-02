@@ -140,7 +140,6 @@ jobs:
         git diff
         git add "HomebrewFormula/${TARGET}.rb"
         git commit -m "Update Homebrew formula"
-        git push
         git push --set-upstream origin "${branch_name}"
 
         pr_url="$(gh pr create --title "Auto update Homebrew formula" --body "Automated changes by GitHub Actions" \
